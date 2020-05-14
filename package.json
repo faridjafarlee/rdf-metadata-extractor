@@ -1,0 +1,32 @@
+{
+  "name": "rdf-metadata-extractor",
+  "version": "1.0.0",
+  "description": "RDF Metadata Extractor",
+  "main": "bin/cli.js",
+  "scripts": {
+    "parse": "node bin/cli.js",
+    "import": "node bin/download-and-import.js",
+    "test": "mocha test --exit",
+    "coverage": "node_modules/nyc/bin/nyc.js npm test",
+    "db:migrate": "source .env ; node_modules/.bin/sequelize-cli db:migrate --url ${DATABASE_CONNECTION_STRING}"
+  },
+  "author": "Farid Jafarlee",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^7.1.2",
+    "nyc": "^15.0.1",
+    "sequelize-cli": "^5.5.1"
+  },
+  "dependencies": {
+    "cli-progress": "^3.8.2",
+    "dotenv": "^8.2.0",
+    "lodash": "^4.17.15",
+    "mysql2": "^2.1.0",
+    "sequelize": "^5.21.8",
+    "tar": "^6.0.2",
+    "unzipper": "^0.10.11",
+    "xml2js": "^0.4.23"
+  }
+}
