@@ -1,9 +1,5 @@
 const db = require('../db');
-const {parseRDFFile} = require('../lib');
-
-const Author = db.model('Author');
-const Book = db.model('Book');
-const BookAuthor = db.model('BookAuthor');
+const importRDFFile = require('../lib/importRDFFile');
 
 (async () => {
   await db.connect();
@@ -13,52 +9,17 @@ const BookAuthor = db.model('BookAuthor');
   for (const file of files) {
     let rdfData;
     try {
-      rdfData = await parseRDFFile(file);
+      rdfData = await importRDFFile(file);
+      console.log('File:', file);
+      for(const field in rdfData) {
+        console.log(field + ':', JSON.stringify(rdfData[field]));
+      }
+      console.log("\n----\n");
     }
     catch(error) {
       console.error(`Failed parsing: ${file} with message: ${error.message}`);
       console.log("\n----\n");
       continue;
-    }
-    
-    console.log('File:', file);
-    for(const field in rdfData) {
-      console.log(field + ':', JSON.stringify(rdfData[field]));
-    }
-    console.log("\n----\n");
-    
-    const [book] = await Book.findOrCreate({
-      raw: true,
-      where: {
-        external_id: rdfData.id,
-      },
-      defaults: {
-        external_id: rdfData.id,
-        title: rdfData.title,
-        publisher: rdfData.publisher,
-        published_at: rdfData.published,
-        language: rdfData.language,
-        rights: rdfData.rights
-      }
-    });
-    
-    for (let author of rdfData.authors) {
-      [author] = await Author.findOrCreate({
-        raw: true,
-        where: {
-          external_id: author.id,
-        },
-        defaults: {
-          external_id: author.id,
-          name: author.name,
-        }
-      });
-      
-      
-      await BookAuthor.create({
-        book_id: book.id,
-        author_id: author.id,
-      }, {ignoreDuplicates: true});
     }
   }
   

@@ -112,12 +112,8 @@ if (isMainThread) {
 }
 else {
   const db = require('../db');
-  const {parseRDFFile} = require('../lib');
-  
-  const Author = db.model('Author');
-  const Book = db.model('Book');
-  const BookAuthor = db.model('BookAuthor');
-  
+  const importRDFFile = require('../lib/importRDFFile');
+
   (async () => {
     await db.connect();
     parentPort.postMessage('ready');
@@ -125,40 +121,7 @@ else {
   
   parentPort.on('message', async (file) => {
     try {
-      const rdfData = await parseRDFFile(file);
-  
-      const [book] = await Book.findOrCreate({
-        raw: true,
-        where: {
-          external_id: rdfData.id,
-        },
-        defaults: {
-          external_id: rdfData.id,
-          title: rdfData.title,
-          publisher: rdfData.publisher,
-          published_at: rdfData.published,
-          language: rdfData.language,
-          rights: rdfData.rights
-        }
-      });
-  
-      for (let author of rdfData.authors) {
-        [author] = await Author.findOrCreate({
-          raw: true,
-          where: {
-            external_id: author.id,
-          },
-          defaults: {
-            external_id: author.id,
-            name: author.name,
-          }
-        });
-    
-        await BookAuthor.create({
-          book_id: book.id,
-          author_id: author.id,
-        }, {ignoreDuplicates: true});
-      }
+      await importRDFFile(file);
     }
     catch {}
     finally {
