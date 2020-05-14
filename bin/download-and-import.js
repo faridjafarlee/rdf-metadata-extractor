@@ -54,26 +54,27 @@ if (isMainThread) {
       if(files.length) {
         console.log(`processing ${files.length} files`);
         progressBar.start(files.length, 0);
-  
-        const workers = [];
-        for (let w = 0; w < os.cpus().length; w++) {
+
+        const workers = os.cpus().map(() => {
           const instance = new Worker(__filename);
-          workers[w] = {busy: true, instance};
-          
+          const worker = {busy: true, instance};
+
           instance.on('message', (message) => {
-            if (message === 'ready') workers[w].busy = false;
+            if (message === 'ready') worker.busy = false;
             if (message === 'done') {
-              workers[w].busy = false;
+              worker.busy = false;
               progressBar.increment();
             }
           });
-  
+
           instance.on('error', () => {
-            workers[w].instance.terminate();
-            workers[w].instance = new Worker(__filename);
-            workers[w].busy = false;
+            worker.instance.terminate();
+            worker.instance = new Worker(__filename);
+            worker.busy = true;
           });
-        }
+
+          return worker;
+        });
         
         let fileIndex = 0;
         let workerIndex = 0;
